@@ -10,9 +10,14 @@ router.get('/', (req, res, next) =>{
 });
 
 router.post('/', (req, res, next) =>{
+  const order = {
+    productId: req.body.productId,
+    quantity: req.body.quantity
+  };// we expect to receive those information from body because we have 'body-parser' and parse body requests to JSON
   res.status(201).json({//The HTTP "201" Created success status response
-    message: 'Order was created'
-  });
+    message: 'Order was created',
+    order: order
+  });//Response JSON data
 });
 
 router.get('/:orderId', (req, res, next) =>{

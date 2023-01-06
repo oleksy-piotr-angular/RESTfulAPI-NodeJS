@@ -11,9 +11,14 @@ router.get("/", (req, res, next) => {
 
 // below this method will be handle Incoming POST request |
 router.post("/", (req, res, next) => {
-  res.status(200).json({
+  const product = {
+    name: req.body.name,
+    price: req.body.price
+  };// we expect to receive those information from body because we have 'body-parser' and parse body requests to JSON
+  res.status(201).json({
     message: "here we handle POST request to /products",
-  });
+    createdProduct: product
+  });//response JSON
 });
 
 // below this method will be handle Incoming GET request with Params |
