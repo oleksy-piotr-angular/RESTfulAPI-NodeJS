@@ -2,6 +2,7 @@
 const express = require("express"); //To include the express module and help manage server and routes.
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
 
+//handle incoming GET requests to /orders
 router.get('/', (req, res, next) =>{
   res.status(200).json({
     message: 'Orders were fetched'
