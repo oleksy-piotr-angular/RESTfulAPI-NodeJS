@@ -10,13 +10,30 @@ const Product = require("../models/product"); //Import Product Schema
 // below this method will be handle Incoming GET request | because this route will be handle with filter (/products)  in app.js we cannot add subsequent filter here again
 router.get("/", (req, res, next) => {
   Product.find() //we looking for documents with this schema
+    .select("name price _id") //we chose which fields we would like to select
     .exec() // exec() function returns a promise, that you can use it with then()
     .then((docs) => {
+      const response = {
+        count: docs.length,
+        products: docs.map((doc) => {
+          return {
+            // we set here our construction of document which we return thanks 'map()'method
+            name: doc.name,
+            price: doc.price,
+            _id: doc._id,
+            request: {
+              // we return additional metadata in object to each element of document
+              type: "GET",
+              url: "http://localhost:5000/products/" + doc._id,
+            },
+          };
+        }), // when we set 'select()' above we return list with all documents with those properties
+      };
       console.log(docs);
 
       // below we send to Response all docs which Mongoose Return from MongoDB
       //      if(docs >= 0){
-      res.status(200).json(docs);
+      res.status(200).json(response);
       /*       }else{
         res.status(404).json({
           message: 'No Entries found'
@@ -45,8 +62,18 @@ router.post("/", (req, res, next) => {
       console.log(result); // print result on browser console
       //below to prove that data was saved correctly we send response
       res.status(201).json({
-        message: "Handling POST request to /products",
-        createdProduct: result,
+        message: "Created product successfully",
+        createdProduct: {
+          // we set here what we would like to send in response inside this object when we create/save a product
+          name: result.name,
+          price: result.price,
+          _id: result._id,
+          request: {
+            // we return additional metadata in object to each element of document
+            type: "GET",
+            url: "http://localhost:5000/products/" + result._id,
+          },
+        },
       }); //response JSON
     })
     .catch((err) => {
@@ -64,17 +91,26 @@ router.post("/", (req, res, next) => {
    *  */
 });
 
-// below this method will be handle Incoming GET request with Params |
+// below this method will be handle Incoming GET request with Params | :productId
 router.get("/:productId", (req, res, next) => {
   const id = req.params.productId; // extract Id from params of request and pass it to variable
   product
     .findById(id) // this is MongoDB/Mongoose method to find a a Document
+    .select("name price _id") // set Data which we would like to take from singular document
     .exec() // exec() function returns a promise, that you can use it with then()
     .then((doc) => {
       //The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call.
       console.log("From MongoDB: ", doc);
       if (doc) {
-        res.status(200).json(doc); // we need to type response here because we 'then()' take  'callback' functions and returns as a 'promise'
+        res.status(200).json({
+          product: doc,
+          request: {
+            //attach additional data inside this object into this request
+            type: "GET",
+            description: "Get all products URL",
+            url: "http://localhost:5000/products/",
+          },
+        }); // we need to type response here because we 'then()' take  'callback' functions and returns as a 'promise'
       } else {
         res
           .status(404)
@@ -101,8 +137,14 @@ router.patch("/:productId", (req, res, next) => {
     .exec() // treat as a Promise
     .then((result) => {
       // if is Ok then send a Response with Results
-      console.log(result);
-      res.status(200).json(result);
+      res.status(200).json({
+        message: "Product updated",
+        request: {
+          //attach additional data inside this object into this request
+          type: "GET",
+          url: "http://localhost:5000/products/" + id,
+        },
+      });
     })
     .catch((err) => {
       // if is not Ok then send a Response with Error
@@ -126,7 +168,15 @@ router.delete("/:productId", (req, res, next) => {
       //The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call.
       console.log(result);
       // below if remove will be done correctly we sen a response
-      res.status(200).json(result);
+      res.status(200).json({
+        message: "Product has been deleted",
+        request: { //attach additional data inside this object into this request
+          type: "POST",
+          description: "If you would like to add new Product",
+          url: "http://localhost:5000/products/",
+          body: {name: 'String', price: 'Number'}
+        }
+      });
     })
     .catch((err) => {
       console.log(err);
