@@ -2,13 +2,23 @@ const express = require("express"); //To include the express module and help man
 var app = express(); //this method will execute an express application where we can use whole utility and methods from there
 const morgan = require("morgan"); //HTTP request logger middleware for node.js
 const bodyParser = require("body-parser"); // Using body-parser allows you to access req.body from within routes and use that data.
+const mongoose = require("mongoose"); // Mongoose is a MongoDB object modeling tool designed to work in an asynchronous environment. Mongoose supports Node.js
 
 /** NOTE: if NODEMON is not close and you cannot run nodemon again use:
  * "pkill -f nodemon"
  * in terminal
  */
 
-//below before we reach some route[CORS] we need to catch any request to prevent CORS-ERRORS [Cross Origin Resource Sharing] = when we get requests from another Ports than server has 
+const productRoutes = require("./api/routes/products");
+const orderRoutes = require("./api/routes/order");
+
+mongoose.set('strictQuery', false);//[MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7
+mongoose.connect(
+'mongodb+srv://node-shop:'+process.env.MONGO_ATLAS_PASS+'@node-shop.pt8c4sm.mongodb.net/?retryWrites=true&w=majority'/* ,
+  { useMongoClient: true }  [mongoose 5+ doesn't require useMongoClient anymore.]*/
+); // connect with path from MongoDB Atlas Page| Recommended way for using Mongoose when we use MongoDB version 4.3 for Node
+
+//below before we reach some route[CORS] we need to catch any request to prevent CORS-ERRORS [Cross Origin Resource Sharing] = when we get requests from another Ports than server has
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*"); //we give here an access to any origin |RESTful|
   /* res.header("Access-Control-Allow-Origin", "http://page.com"); //we give here an access only to  "http://page.com" */
@@ -16,18 +26,14 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   ); //here we set which kind of headers we want to accept
-  if(req.method ==='OPTIONS') {
-    //if request method is 'OPTION' then we set what kind of requests we want to allow 
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
+  if (req.method === "OPTIONS") {
+    //if request method is 'OPTION' then we set what kind of requests we want to allow
+    res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
     //above we tell the browser what he may send
     return res.status(200).json({});
-
   }
-  next();// if we do not use this method here then we block other incoming Requests
+  next(); // if we do not use this method here then we block other incoming Requests
 }); //here we append the headers to any response we send back and add 'next()' to not block other incoming Requests
-
-const productRoutes = require("./api/routes/products");
-const orderRoutes = require("./api/routes/order");
 
 //below we use it to get some logs when we use 'nodemon' to see info about requests
 app.use(morgan("dev")); // set format we want to use on output
