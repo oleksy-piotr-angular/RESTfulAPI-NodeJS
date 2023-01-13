@@ -3,15 +3,14 @@ const express = require("express"); //To include the express module and help man
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
 const mongoose = require("mongoose"); // Import Mongoose to create object_ID in new products
 const { updateOne } = require("../models/product");
-const product = require("../models/product");
 
 const Product = require("../models/product"); //Import Product Schema
 
 // below this method will be handle Incoming GET request | because this route will be handle with filter (/products)  in app.js we cannot add subsequent filter here again
 router.get("/", (req, res, next) => {
-  Product.find() //we looking for documents with this schema
-    .select("name price _id") //we chose which fields we would like to select
-    .exec() // exec() function returns a promise, that you can use it with then()
+  Product.find() /* we looking for documents with this schema */
+    .select("name price _id") /* we chose which fields we would like to select */
+    .exec() /*  exec() function returns a promise, that you can use it with then() */
     .then((docs) => {
       const response = {
         count: docs.length,
@@ -94,13 +93,13 @@ router.post("/", (req, res, next) => {
 // below this method will be handle Incoming GET request with Params | :productId
 router.get("/:productId", (req, res, next) => {
   const id = req.params.productId; // extract Id from params of request and pass it to variable
-  product
-    .findById(id) // this is MongoDB/Mongoose method to find a a Document
-    .select("name price _id") // set Data which we would like to take from singular document
-    .exec() // exec() function returns a promise, that you can use it with then()
+  Product
+    .findById(id) /*  this is MongoDB/Mongoose method to find a a Document */
+    .select("name price _id") /*  set Data which we would like to take from singular document */
+    .exec() /*  exec() function returns a promise, that you can use it with then() */
     .then((doc) => {
       //The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call.
-      console.log("From MongoDB: ", doc);
+      console.log("From MongoDB database: ", doc);
       if (doc) {
         res.status(200).json({
           product: doc,
@@ -161,21 +160,22 @@ router.delete("/:productId", (req, res, next) => {
   Product.deleteOne(
     {
       _id: id,
-    } /* we use 'remove()' method according to Schema form we remove document with this ID */
+    } /* we use 'deleteOne' method according to Schema form we remove document with this ID */
   )
-    .exec() //exec() function create a real promise, that you can use it with then()
+    .exec() /* exec() function create a real promise, that you can use it with then() */
     .then((result) => {
-      //The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call.
+      /* The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call. */
       console.log(result);
       // below if remove will be done correctly we sen a response
       res.status(200).json({
         message: "Product has been deleted",
-        request: { //attach additional data inside this object into this request
+        request: {
+          //attach additional data inside this object into this request
           type: "POST",
           description: "If you would like to add new Product",
           url: "http://localhost:5000/products/",
-          body: {name: 'String', price: 'Number'}
-        }
+          body: { name: "String", price: "Number" },
+        },
       });
     })
     .catch((err) => {
