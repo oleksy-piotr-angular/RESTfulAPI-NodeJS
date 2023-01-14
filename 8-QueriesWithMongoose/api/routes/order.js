@@ -13,6 +13,9 @@ router.get("/", (req, res, next) => {
     .select(
       "product quantity _id"
     ) /* select which properties would you like to show in response */
+    .populate(
+      "product", "name" /* pass only Product name */
+    ) /* Populate in Mongoose is used to enhance one-to-many or many-to-one data relationships in MongoDB. The populate() method allows developers to simply refer to a document inside a different collection to another document’s field that resides in a different field. */
     .exec() /* turn into a real Promise */
     .then((docs) => {
       //below this is a form of object which would you like pass into response
@@ -41,6 +44,7 @@ router.get("/", (req, res, next) => {
     }); /* If  some Errors */
 });
 
+//handle incoming POST requests to /orders and create new document with relation
 router.post("/", (req, res, next) => {
   Product.findById(
     req.body.productId
@@ -93,16 +97,21 @@ router.post("/", (req, res, next) => {
     });
 });
 
+//handle incoming GET requests to /orders with parameter ":orderId"
 router.get("/:orderId", (req, res, next) => {
   Order.findById(
     req.params.orderId
   ) /* seeking order thanks created Mongoose Schema in /models */
+  .populate(
+    "product" /* pass all data of Product */
+  ) /* Populate in Mongoose is used to enhance one-to-many or many-to-one data relationships 
     .exec() /* turn into a real Promise */
     .then((order) => {
-      if(!order){// if order not exist then send message not found
+      if (!order) {
+        // if order not exist then send message not found
         return res.status(404).json({
-          message: "Order not found"
-        })
+          message: "Order not found",
+        });
       }
       /* Success if we found and send a response which we type below */
       res.status(200).json({
@@ -123,6 +132,7 @@ router.get("/:orderId", (req, res, next) => {
     });
 });
 
+//handle incoming DELETE requests to /orders to remove one document with parameter ":orderId"
 router.delete("/:orderId", (req, res, next) => {
   const id = req.params.orderId; // extract Id from params of request and pass it to variable
   Order.deleteOne({ _id: id })
