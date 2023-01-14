@@ -37,7 +37,8 @@ app.use((req, res, next) => {
 
 //below we use it to get some logs when we use 'nodemon' to see info about requests
 app.use(morgan("dev")); // set format we want to use on output
-//below we use body-parer to pars 'urlencoded'
+app.use('/uploads',express.static('uploads'))//makes this folder static and available for everyone if it takes an requests (/uploads)
+//below we use body-parser to pars 'urlencoded'
 app.use(bodyParser.urlencoded({ extended: false })); //only simple bodies for 'urlencoded' data
 app.use(bodyParser.json()); //basically tells the system that you want json to be used.
 

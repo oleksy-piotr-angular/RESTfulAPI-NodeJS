@@ -1,15 +1,53 @@
 /*eslint-env es6*/
+const { on } = require("events");
 const express = require("express"); //To include the express module and help manage server and routes.
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
 const mongoose = require("mongoose"); // Import Mongoose to create object_ID in new products
+const multer = require("multer"); //Require Multer Package to implement
 
+//below we define storage strategy
+const storageDef = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/"); // execute callback and pass potential error and destination path
+  },
+  filename: function (req, file, cb) {
+    cb(null, new Date().toISOString() + file.originalname); // execute callback and pass potential error and define the name of upload file
+  },
+});
+/* cb -> callback */
+
+/* below we define a filter to incoming Files */
+const fileFilterDef = (req, file, callback) => {
+  //reject if file extensive is incorrect
+  if (
+    file.mimetype === "image/jpeg" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/png"
+  ) {
+    //pass a file
+    callback(null, true);
+  } else {
+    callback(null, false);
+  }
+};
+
+/* below we set in 'limits' LIMIT for file Size */
+const upload = multer({
+  storage: storageDef,
+  limits: {
+    fileSize: 1024 * 1024 * 5,
+  },
+  fileFilter: fileFilterDef,
+}); // we executer multer() thanks this variable | basically initialize and pass a configuration (specify a Information for Multer how he should try try to store incoming files)
 
 const Product = require("../models/product"); //Import Product Schema
 
 // below this method will be handle Incoming GET request | because this route will be handle with filter (/products)  in app.js we cannot add subsequent filter here again
 router.get("/", (req, res, next) => {
   Product.find() /* we looking for documents with this schema */
-    .select("name price _id") /* we chose which fields we would like to select */
+    .select(
+      "name price _id productImage"
+    ) /* we chose which fields we would like to select */
     .exec() /*  exec() function returns a promise, that you can use it with then() */
     .then((docs) => {
       const response = {
@@ -20,6 +58,7 @@ router.get("/", (req, res, next) => {
             name: doc.name,
             price: doc.price,
             _id: doc._id,
+            productImage: doc.productImage,
             request: {
               // we return additional metadata in object to each element of document
               type: "GET",
@@ -49,53 +88,64 @@ router.get("/", (req, res, next) => {
 });
 
 // below this method will be handle Incoming POST request |
-router.post("/", (req, res, next) => {
-  const product = new Product({
-    _id: new mongoose.Types.ObjectId(), // we Create special MongoDB "objectId"
-    name: req.body.name,
-    price: req.body.price,
-  }); // we expect to receive those information from body because we have 'body-parser' and parse body requests to JSON
-  product
-    .save()
-    .then((result) => {
-      console.log(result); // print result on browser console
-      //below to prove that data was saved correctly we send response
-      res.status(201).json({
-        message: "Created product successfully",
-        createdProduct: {
-          // we set here what we would like to send in response inside this object when we create/save a product
-          name: result.name,
-          price: result.price,
-          _id: result._id,
-          request: {
-            // we return additional metadata in object to each element of document
-            type: "GET",
-            url: "http://localhost:5000/products/" + result._id,
+router.post(
+  "/",
+  upload.single(
+    "productImage"
+  ) /* try to parse only one file with Multer with specified name */,
+  (req, res, next) => {
+    console.log(req.file);
+    const product = new Product({
+      _id: new mongoose.Types.ObjectId(), // we Create special MongoDB "objectId"
+      name: req.body.name,
+      price: req.body.price,
+      productImage: req.file.path, /* thanks Multer property we can set URL */
+    }); // we expect to receive those information from body because we have 'body-parser' and parse body requests to JSON
+    product
+      .save()
+      .then((result) => {
+        console.log(result); // print result on browser console
+        //below to prove that data was saved correctly we send response
+        res.status(201).json({
+          message: "Created product successfully",
+          createdProduct: {
+            // we set here what we would like to send in response inside this object when we create/save a product
+            name: result.name,
+            price: result.price,
+            _id: result._id,
+            request: {
+              // we return additional metadata in object to each element of document
+              type: "GET",
+              url: "http://localhost:5000/products/" + result._id,
+            },
           },
-        },
-      }); //response JSON
-    })
-    .catch((err) => {
-      console.log(err); // catch potential errors
-      //below we send an error response if it occurs
-      res.status(500).json({
-        error: err,
+        }); //response JSON
+      })
+      .catch((err) => {
+        console.log(err); // catch potential errors
+        //below we send an error response if it occurs
+        res.status(500).json({
+          error: err,
+        });
       });
-    });
-  /**
-   * save() - special(which we can use on Mongoose Models) method from Mongoose to save data into
-   * MongoDB
-   * then() - The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call.
-   * catch() - let us to capture/intercept errors if they will happen
-   *  */
-});
+    /**
+     * save() - special(which we can use on Mongoose Models) method from Mongoose to save data into
+     * MongoDB
+     * then() - The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call.
+     * catch() - let us to capture/intercept errors if they will happen
+     *  */
+  }
+);
 
 // below this method will be handle Incoming GET request with Params | :productId
 router.get("/:productId", (req, res, next) => {
   const id = req.params.productId; // extract Id from params of request and pass it to variable
-  Product
-    .findById(id) /*  this is MongoDB/Mongoose method to find a a Document */
-    .select("name price _id") /*  set Data which we would like to take from singular document */
+  Product.findById(
+    id
+  ) /*  this is MongoDB/Mongoose method to find a a Document */
+    .select(
+      "name price _id productImage"
+    ) /*  set Data which we would like to take from singular document */
     .exec() /*  exec() function returns a promise, that you can use it with then() */
     .then((doc) => {
       //The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call.
