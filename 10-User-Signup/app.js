@@ -11,6 +11,7 @@ const mongoose = require("mongoose"); // Mongoose is a MongoDB object modeling t
 
 const productRoutes = require("./api/routes/products");
 const orderRoutes = require("./api/routes/order");
+const userRoutes = require("./api/routes/user");
 
 mongoose.set('strictQuery', false);//[MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7
 mongoose.connect(
@@ -45,6 +46,7 @@ app.use(bodyParser.json()); //basically tells the system that you want json to b
 // Routes which should handle requests
 app.use("/products", productRoutes); // we set (/products) as a filter for incoming request and the be handle with second argument (productRoutes)
 app.use("/orders", orderRoutes); // we set here next Route to Receive another request (/orders)
+app.use("/user", userRoutes); // we set here third Route to Receive another request (/user)
 
 //handling ERRORS for Requests
 app.use((req, res, next) => {
