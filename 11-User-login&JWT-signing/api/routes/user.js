@@ -3,6 +3,7 @@ const express = require("express"); //To include the express module and help man
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
 const mongoose = require("mongoose"); // Import Mongoose to create object_ID in new orders
 const bcrypt = require("bcrypt"); //Add bcrypt to password encryption
+const jwt = require("jsonwebtoken"); // Add JWT to keep information between client and server(token will be save in MongoDB but will be overwrite each time that user will be login [we use it because session are not possible in this API because RESTful API is stateless]) that someone is log in
 
 const User = require("../models/user"); // import User Schema defined with mongooseSchema
 
@@ -60,14 +61,14 @@ router.post("/login", (req, res, next) => {
     .exec()
     .then((user) => {
       if (user.length < 1) {
-         /*above in response we always get an Array so we check length if user was found */
+        /*above in response we always get an Array so we check length if user was found */
         /*NOTE**
-        * HTTP 404 means response successful but cannot found resource or file
-        * HTTP 401 means  Unauthorized response status code indicates that the client request has 
-        * not been completed because it lacks valid authentication credentials for the requested 
-        * resource.
-        * */
-       
+         * HTTP 404 means response successful but cannot found resource or file
+         * HTTP 401 means  Unauthorized response status code indicates that the client request has
+         * not been completed because it lacks valid authentication credentials for the requested
+         * resource.
+         * */
+
         return res.status(401).json({
           message: "Auth fail",
         });
@@ -81,10 +82,23 @@ router.post("/login", (req, res, next) => {
             });
           }
           if (result) {
-            //if we not have an error and hash was compered successfully
+            //if we not have an error and hash was compered successfully we log in
+            const token = jwt.sign(
+              {
+                email: user[0].email,
+                userId: user[0]._id,
+              },
+              process.env.JWT_KEY,
+              {
+                expiresIn: "1h",
+              }
+            );
+            //above JWT will store information about Log In Session | create Token
             return res.status(200).json({
               message: "Auth successful",
+              sessionToken: token
             });
+            //above we return information that log in complete successfully
           }
           res.status(401).json({
             // we respond if password was incorrect
