@@ -93,7 +93,9 @@ router.post("/login", (req, res, next) => {
                 expiresIn: "1h",
               }
             );
-            //above JWT will store information about Log In Session | create Token
+            /** above JWT will store encrypted information about Log In Session | create Token
+             * process.env.JWT_KEY - is stored in "nodemon.json" file 
+             */
             return res.status(200).json({
               message: "Auth successful",
               sessionToken: token
