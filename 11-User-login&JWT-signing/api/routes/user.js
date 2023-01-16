@@ -55,6 +55,53 @@ router.post("/signup", (req, res, next) => {
     });
 });
 
+router.post("/login", (req, res, next) => {
+  User.find({ email: req.body.email })
+    .exec()
+    .then((user) => {
+      if (user.length < 1) {
+         /*above in response we always get an Array so we check length if user was found */
+        /*NOTE**
+        * HTTP 404 means response successful but cannot found resource or file
+        * HTTP 401 means  Unauthorized response status code indicates that the client request has 
+        * not been completed because it lacks valid authentication credentials for the requested 
+        * resource.
+        * */
+       
+        return res.status(401).json({
+          message: "Auth fail",
+        });
+      } else {
+        // we check if taken password from body and hash from storage compare each other
+        bcrypt.compare(req.body.password, user[0].password, (err, result) => {
+          if (err) {
+            // we get if comparison generally fails | if it was not compared  we not receive this error
+            return res.status(401).json({
+              message: "Auth failed",
+            });
+          }
+          if (result) {
+            //if we not have an error and hash was compered successfully
+            return res.status(200).json({
+              message: "Auth successful",
+            });
+          }
+          res.status(401).json({
+            // we respond if password was incorrect
+            message: "Auth failed",
+          });
+        });
+      }
+    })
+    .catch((err) => {
+      // catch an error if something goes wrong
+      console.log(err);
+      res.status(500).json({
+        error: err,
+      });
+    });
+});
+
 router.delete("/:userId", (req, res, next) => {
   User.deleteOne({
     _id: req.params.userId,
@@ -66,7 +113,7 @@ router.delete("/:userId", (req, res, next) => {
       });
     })
     .catch((err) => {
-      // catch an error if something goes wrong 
+      // catch an error if something goes wrong
       console.log(err);
       res.status(500).json({
         error: err,
