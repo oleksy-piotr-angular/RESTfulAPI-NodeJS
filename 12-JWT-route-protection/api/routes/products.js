@@ -4,6 +4,7 @@ const express = require("express"); //To include the express module and help man
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
 const mongoose = require("mongoose"); // Import Mongoose to create object_ID in new products
 const multer = require("multer"); //Require Multer Package to implement
+const checkAuth = require("../middleware/check-auth"); // import middleware function to authenticate some actions in requests
 
 //below we define storage strategy
 const storageDef = multer.diskStorage({
@@ -87,9 +88,14 @@ router.get("/", (req, res, next) => {
     });
 });
 
-// below this method will be handle Incoming POST request |
+// below this method will be handle Incoming POST request
+/** NOTES
+ *  - we use "checkAuth" function to authorize this request if someone is logIn an want to Post some Product
+ *  - upload.single will parse form Data (because we add file) and extract file for each request so we need to use auth function after this method after parsing because it was not populated before | but when we set 'token' to the Header then we can first authorize this request before 'parsing' then our method do not save our image which 'upload.single' method will do on each request
+ */
 router.post(
   "/",
+  checkAuth /*this is function which checks when we logged in and have a token and we pass it into this request then wee can do this authorization properly */,
   upload.single(
     "productImage"
   ) /* try to parse only one file with Multer with specified name */,
@@ -99,7 +105,7 @@ router.post(
       _id: new mongoose.Types.ObjectId(), // we Create special MongoDB "objectId"
       name: req.body.name,
       price: req.body.price,
-      productImage: req.file.path, /* thanks Multer property we can set URL */
+      productImage: req.file.path /* thanks Multer property we can set URL */,
     }); // we expect to receive those information from body because we have 'body-parser' and parse body requests to JSON
     product
       .save()
@@ -174,66 +180,74 @@ router.get("/:productId", (req, res, next) => {
 });
 
 // below this method will be handle Incoming PATCH request with Params |
-router.patch("/:productId", (req, res, next) => {
-  const id = req.params.productId; // extract Id from params of request and pass it to variable
-  const updateOps = {}; // here we create an object which be fill we properties to change(name or price or both)
+router.patch(
+  "/:productId",
+  checkAuth /*this is function which checks when when we logged in and have a token and we pass it into this request then wee can do this authorization properly */,
+  (req, res, next) => {
+    const id = req.params.productId; // extract Id from params of request and pass it to variable
+    const updateOps = {}; // here we create an object which be fill we properties to change(name or price or both)
 
-  for (const ops of req.body) {
-    updateOps[ops.propName] = ops.value; // here we add an property with value to this object with parameters from body request [updateOs == update Operations]
+    for (const ops of req.body) {
+      updateOps[ops.propName] = ops.value; // here we add an property with value to this object with parameters from body request [updateOs == update Operations]
+    }
+
+    Product.updateOne({ _id: id }, { $set: updateOps }) // send an object with properties which we would like to change
+      .exec() // treat as a Promise
+      .then((result) => {
+        // if is Ok then send a Response with Results
+        res.status(200).json({
+          message: "Product updated",
+          request: {
+            //attach additional data inside this object into this request
+            type: "GET",
+            url: "http://localhost:5000/products/" + id,
+          },
+        });
+      })
+      .catch((err) => {
+        // if is not Ok then send a Response with Error
+        console.log(err);
+        res.status(500).json({
+          error: err,
+        });
+      });
   }
-
-  Product.updateOne({ _id: id }, { $set: updateOps }) // send an object with properties which we would like to change
-    .exec() // treat as a Promise
-    .then((result) => {
-      // if is Ok then send a Response with Results
-      res.status(200).json({
-        message: "Product updated",
-        request: {
-          //attach additional data inside this object into this request
-          type: "GET",
-          url: "http://localhost:5000/products/" + id,
-        },
-      });
-    })
-    .catch((err) => {
-      // if is not Ok then send a Response with Error
-      console.log(err);
-      res.status(500).json({
-        error: err,
-      });
-    });
-});
+);
 
 // below this method will be handle Incoming DELETE request with Params |
-router.delete("/:productId", (req, res, next) => {
-  const id = req.params.productId; // extract Id from params of request and pass it to variable
-  Product.deleteOne(
-    {
-      _id: id,
-    } /* we use 'deleteOne' method according to Schema form we remove document with this ID */
-  )
-    .exec() /* exec() function create a real promise, that you can use it with then() */
-    .then((result) => {
-      /* The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call. */
-      console.log(result);
-      // below if remove will be done correctly we sen a response
-      res.status(200).json({
-        message: "Product has been deleted",
-        request: {
-          //attach additional data inside this object into this request
-          type: "POST",
-          description: "If you would like to add new Product",
-          url: "http://localhost:5000/products/",
-          body: { name: "String", price: "Number" },
-        },
+router.delete(
+  "/:productId",
+  checkAuth /*this is function which checks when we logged in and have a token and we pass it into this request then wee can do this authorization properly */,
+  (req, res, next) => {
+    const id = req.params.productId; // extract Id from params of request and pass it to variable
+    Product.deleteOne(
+      {
+        _id: id,
+      } /* we use 'deleteOne' method according to Schema form we remove document with this ID */
+    )
+      .exec() /* exec() function create a real promise, that you can use it with then() */
+      .then((result) => {
+        /* The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call. */
+        console.log(result);
+        // below if remove will be done correctly we sen a response
+        res.status(200).json({
+          message: "Product has been deleted",
+          request: {
+            //attach additional data inside this object into this request
+            type: "POST",
+            description: "If you would like to add new Product",
+            url: "http://localhost:5000/products/",
+            body: { name: "String", price: "Number" },
+          },
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).json({
+          error: err,
+        });
       });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        error: err,
-      });
-    });
-});
+  }
+);
 
 module.exports = router;
