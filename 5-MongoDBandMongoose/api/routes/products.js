@@ -3,7 +3,6 @@ const express = require("express"); //To include the express module and help man
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
 const mongoose = require("mongoose"); // Import Mongoose to create object_ID in new products
 const { updateOne } = require("../models/product");
-const product = require("../models/product");
 
 const Product = require("../models/product"); //Import Product Schema
 
