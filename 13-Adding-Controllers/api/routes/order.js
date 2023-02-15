@@ -3,7 +3,7 @@ const express = require('express'); //To include the express module and help man
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
 const checkAuth = require('../middleware/check-auth'); // import middleware function to authenticate some actions in requests
 
-const OrdersController = require('../controllers/orders'); // take all Expressions with arrow function to use it when we handle Requests below 
+const OrdersController = require('../controllers/orders'); // take all Expressions (Controllers) with arrow function to use it when we handle Requests below 
 
 /** NOTES
  *  - we use "checkAuth" function to authorize this request if someone is logIn an want to Post

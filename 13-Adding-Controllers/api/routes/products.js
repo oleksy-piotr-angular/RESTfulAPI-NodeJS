@@ -4,9 +4,9 @@ const express = require('express'); //To include the express module and help man
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
 const multer = require('multer'); //Require Multer Package to implement
 const checkAuth = require('../middleware/check-auth'); // import middleware function to authenticate some actions in requests
-const ProductsController = require('../controllers/products'); // take all Expressions with arrow function to use it when we handle Requests below
-//below we define storage strategy
+const ProductsController = require('../controllers/products'); // take all Expressions (Controllers) with arrow function to use it when we handle Requests below
 
+//below we define storage strategy
 const storageDef = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './uploads/'); // execute callback and pass potential error and destination path
@@ -40,8 +40,6 @@ const upload = multer({
   },
   fileFilter: fileFilterDef,
 }); // we executer multer() thanks this variable | basically initialize and pass a configuration (specify a Information for Multer how he should try try to store incoming files)
-
-const Product = require('../models/product'); //Import Product Schema
 
 // below this method will be handle Incoming GET request | because this route will be handle with filter (/products)  in app.js we cannot add subsequent filter/path here again
 router.get(
