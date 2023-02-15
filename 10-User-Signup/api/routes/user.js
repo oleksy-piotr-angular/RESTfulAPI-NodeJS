@@ -1,12 +1,12 @@
 /*eslint-env es6*/
-const express = require("express"); //To include the express module and help manage server and routes.
+const express = require('express'); //To include the express module and help manage server and routes.
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
-const mongoose = require("mongoose"); // Import Mongoose to create object_ID in new orders
-const bcrypt = require("bcrypt"); //Add bcrypt to password encryption
+const mongoose = require('mongoose'); // Import Mongoose to create object_ID in new orders
+const bcrypt = require('bcrypt'); //Add bcrypt to password encryption
 
-const User = require("../models/user"); // import User Schema defined with mongooseSchema
+const User = require('../models/user'); // import User Schema defined with mongooseSchema
 
-router.post("/signup", (req, res, next) => {
+router.post('/signup', (req, res, next) => {
   const saltRound = 10; //  the cost factor. The cost factor controls how much time is needed to calculate a single BCrypt hash. The higher the cost factor, the more hashing rounds are done
 
   User.find({ email: req.body.email }) /* check if email not exist in storage */
@@ -17,7 +17,7 @@ router.post("/signup", (req, res, next) => {
         /* we alway get a result with Array so we need to check if Array has Some elements | email found and not create a User */
         //(HTTP) 422 Unprocessable Entity response status code indicates that the server understands the content type of the request entity, and the syntax of the request entity is correct, but it was unable to process the contained instructions
         return res.status(422).json({
-          message: "Cannot create - mail exists in storage",
+          message: 'Cannot create - mail exists in storage',
         });
       } else {
         /* email not found | can create new account */
@@ -39,7 +39,7 @@ router.post("/signup", (req, res, next) => {
               .then((result) => {
                 console.log(result);
                 res.status(201).json({
-                  message: "User created",
+                  message: 'User created',
                 });
               })
               .catch((err) => {
@@ -55,14 +55,14 @@ router.post("/signup", (req, res, next) => {
     });
 });
 
-router.delete("/:userId", (req, res, next) => {
+router.delete('/:userId', (req, res, next) => {
   User.deleteOne({
     _id: req.params.userId,
   })
     .exec() /* Create a Promise | now we can use promise methods */
     .then((result) => {
       res.status(200).json({
-        message: "User deleted successfully.",
+        message: 'User deleted successfully.',
       });
     })
     .catch((err) => {

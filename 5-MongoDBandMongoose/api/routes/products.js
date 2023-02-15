@@ -1,13 +1,13 @@
 /*eslint-env es6*/
-const express = require("express"); //To include the express module and help manage server and routes.
+const express = require('express'); //To include the express module and help manage server and routes.
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
-const mongoose = require("mongoose"); // Import Mongoose to create object_ID in new products
-const { updateOne } = require("../models/product");
+const mongoose = require('mongoose'); // Import Mongoose to create object_ID in new products
+const { updateOne } = require('../models/product');
 
-const Product = require("../models/product"); //Import Product Schema
+const Product = require('../models/product'); //Import Product Schema
 
 // below this method will be handle Incoming GET request | because this route will be handle with filter (/products)  in app.js we cannot add subsequent filter here again
-router.get("/", (req, res, next) => {
+router.get('/', (req, res, next) => {
   Product.find() //we looking for documents with this schema
     .exec() // exec() function returns a promise, that you can use it with then()
     .then((docs) => {
@@ -32,7 +32,7 @@ router.get("/", (req, res, next) => {
 });
 
 // below this method will be handle Incoming POST request |
-router.post("/", (req, res, next) => {
+router.post('/', (req, res, next) => {
   const product = new Product({
     _id: new mongoose.Types.ObjectId(), // we Create special MongoDB "objectId"
     name: req.body.name,
@@ -44,7 +44,7 @@ router.post("/", (req, res, next) => {
       console.log(result); // print result on browser console
       //below to prove that data was saved correctly we send response
       res.status(201).json({
-        message: "Handling POST request to /products",
+        message: 'Handling POST request to /products',
         createdProduct: result,
       }); //response JSON
     })
@@ -64,20 +64,20 @@ router.post("/", (req, res, next) => {
 });
 
 // below this method will be handle Incoming GET request with Params |
-router.get("/:productId", (req, res, next) => {
+router.get('/:productId', (req, res, next) => {
   const id = req.params.productId; // extract Id from params of request and pass it to variable
   product
     .findById(id) // this is MongoDB/Mongoose method to find a a Document
     .exec() // exec() function returns a promise, that you can use it with then()
     .then((doc) => {
       //The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call.
-      console.log("From MongoDB: ", doc);
+      console.log('From MongoDB: ', doc);
       if (doc) {
         res.status(200).json(doc); // we need to type response here because we 'then()' take  'callback' functions and returns as a 'promise'
       } else {
         res
           .status(404)
-          .json({ message: "No valid entry found for provided ID" });
+          .json({ message: 'No valid entry found for provided ID' });
         // above if ID has an proper form but document will be not found then our Response would be return 'null' but instead we want to send 'message' above.
       }
     })
@@ -88,7 +88,7 @@ router.get("/:productId", (req, res, next) => {
 });
 
 // below this method will be handle Incoming PATCH request with Params |
-router.patch("/:productId", (req, res, next) => {
+router.patch('/:productId', (req, res, next) => {
   const id = req.params.productId; // extract Id from params of request and pass it to variable
   const updateOps = {}; // here we create an object which be fill we properties to change(name or price or both)
 
@@ -113,7 +113,7 @@ router.patch("/:productId", (req, res, next) => {
 });
 
 // below this method will be handle Incoming DELETE request with Params |
-router.delete("/:productId", (req, res, next) => {
+router.delete('/:productId', (req, res, next) => {
   const id = req.params.productId; // extract Id from params of request and pass it to variable
   Product.deleteOne(
     {

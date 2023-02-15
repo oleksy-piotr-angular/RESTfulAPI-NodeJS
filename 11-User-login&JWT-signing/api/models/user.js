@@ -1,5 +1,5 @@
 //define how a user should looks like in Application
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const userSchema = mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId, //define ObjectId Type
@@ -12,4 +12,4 @@ const userSchema = mongoose.Schema({
   password: { type: String, required: true },
 });
 
-module.exports = mongoose.model("User", userSchema); // here we Export Mongoose Schema with a name(Order)
+module.exports = mongoose.model('User', userSchema); // here we Export Mongoose Schema with a name(Order)

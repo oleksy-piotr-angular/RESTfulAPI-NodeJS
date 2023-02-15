@@ -1,17 +1,17 @@
 /*eslint-env es6*/
-const { json } = require("body-parser");
-const express = require("express"); //To include the express module and help manage server and routes.
+const { json } = require('body-parser');
+const express = require('express'); //To include the express module and help manage server and routes.
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
-const mongoose = require("mongoose"); // Import Mongoose to create object_ID in new orders
+const mongoose = require('mongoose'); // Import Mongoose to create object_ID in new orders
 
-const Order = require("../models/order"); // import Order Schema defined with mongooseSchema
-const Product = require("../models/product"); // import Product schema to use it and make sure that product exists in your Order
+const Order = require('../models/order'); // import Order Schema defined with mongooseSchema
+const Product = require('../models/product'); // import Product schema to use it and make sure that product exists in your Order
 
 //handle incoming GET requests to /orders
-router.get("/", (req, res, next) => {
+router.get('/', (req, res, next) => {
   Order.find() /* return all documents with 'Order' schema */
     .select(
-      "product quantity _id"
+      'product quantity _id'
     ) /* select which properties would you like to show in response */
     .exec() /* turn into a real Promise */
     .then((docs) => {
@@ -27,8 +27,8 @@ router.get("/", (req, res, next) => {
             quantity: doc.quantity,
             request: {
               //set metadata inside this response
-              type: "GET",
-              url: "http://localhost:5000/orders/" + doc._id,
+              type: 'GET',
+              url: 'http://localhost:5000/orders/' + doc._id,
             },
           };
         }),
@@ -41,7 +41,7 @@ router.get("/", (req, res, next) => {
     }); /* If  some Errors */
 });
 
-router.post("/", (req, res, next) => {
+router.post('/', (req, res, next) => {
   Product.findById(
     req.body.productId
   ) /* First we looking for product if Exists thanks Mongoose Schema in /models */
@@ -52,7 +52,7 @@ router.post("/", (req, res, next) => {
           //we set this condition if Product will be return empty if not exist
           return res.status(404).json({
             // if we send this response then we get out from this method immediately
-            message: "Product not found",
+            message: 'Product not found',
           });
         }
         //below we create Object 'order' from 'Order' Mongoose Schema with expected data which we receive in information from body because we have 'body-parser' and parse body requests to JSON
@@ -70,7 +70,7 @@ router.post("/", (req, res, next) => {
       //below The HTTP "201" Created success status response
       res.status(201).json({
         // if we succeeded we want to send this message
-        message: "Order stored",
+        message: 'Order stored',
         createdOrder: {
           // send information about created Order
           _id: result._id,
@@ -79,21 +79,21 @@ router.post("/", (req, res, next) => {
         },
         request: {
           //send metadata inside this response
-          type: "GET",
-          url: "http://localhost:5000/orders/" + result._id,
+          type: 'GET',
+          url: 'http://localhost:5000/orders/' + result._id,
         },
       });
     })
     .catch((err) => {
       /* if Product was not found then return  Error */
       res.status(500).json({
-        message: "Product not found",
+        message: 'Product not found',
         error: err,
       }); // if we send this response then we get out from this method immediately
     });
 });
 
-router.get("/:orderId", (req, res, next) => {
+router.get('/:orderId', (req, res, next) => {
   Order.findById(
     req.params.orderId
   ) /* seeking order thanks created Mongoose Schema in /models */
@@ -101,17 +101,17 @@ router.get("/:orderId", (req, res, next) => {
     .then((order) => {
       if(!order){// if order not exist then send message not found
         return res.status(404).json({
-          message: "Order not found"
-        })
+          message: 'Order not found'
+        });
       }
       /* Success if we found and send a response which we type below */
       res.status(200).json({
         order: order, //we set here 'order' which we pass thanks Mongoose above
         request: {
           //send metadata inside this response
-          type: "GET",
-          description: "Below link to whole order list",
-          url: "http://localhost:5000/orders/",
+          type: 'GET',
+          description: 'Below link to whole order list',
+          url: 'http://localhost:5000/orders/',
         },
       });
     })
@@ -123,22 +123,22 @@ router.get("/:orderId", (req, res, next) => {
     });
 });
 
-router.delete("/:orderId", (req, res, next) => {
+router.delete('/:orderId', (req, res, next) => {
   const id = req.params.orderId; // extract Id from params of request and pass it to variable
   Order.deleteOne({ _id: id })
     .exec() /* turn into a real Promise */
     .then((result) => {
       res.status(200).json({
-        message: "Order was deleted", //we pass info here
+        message: 'Order was deleted', //we pass info here
         request: {
           //send metadata inside this response
-          type: "POST",
-          description: "If we would like to create a new Order",
-          url: "http://localhost:5000/orders/",
+          type: 'POST',
+          description: 'If we would like to create a new Order',
+          url: 'http://localhost:5000/orders/',
           body: {
             //we send a constructor here in respond how it looks like
-            productId: "ID",
-            quantity: "Number",
+            productId: 'ID',
+            quantity: 'Number',
           },
         },
       });

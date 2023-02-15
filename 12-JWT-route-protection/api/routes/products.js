@@ -1,15 +1,15 @@
 /*eslint-env es6*/
-const { on } = require("events");
-const express = require("express"); //To include the express module and help manage server and routes.
+const { on } = require('events');
+const express = require('express'); //To include the express module and help manage server and routes.
 const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
-const mongoose = require("mongoose"); // Import Mongoose to create object_ID in new products
-const multer = require("multer"); //Require Multer Package to implement
-const checkAuth = require("../middleware/check-auth"); // import middleware function to authenticate some actions in requests
+const mongoose = require('mongoose'); // Import Mongoose to create object_ID in new products
+const multer = require('multer'); //Require Multer Package to implement to store files on server
+const checkAuth = require('../middleware/check-auth'); // import middleware function to authenticate some actions in requests
 
 //below we define storage strategy
 const storageDef = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./uploads/"); // execute callback and pass potential error and destination path
+    cb(null, './uploads/'); // execute callback and pass potential error and destination path
   },
   filename: function (req, file, cb) {
     cb(null, new Date().toISOString() + file.originalname); // execute callback and pass potential error and define the name of upload file
@@ -21,9 +21,9 @@ const storageDef = multer.diskStorage({
 const fileFilterDef = (req, file, callback) => {
   //reject if file extensive is incorrect
   if (
-    file.mimetype === "image/jpeg" ||
-    file.mimetype === "image/jpg" ||
-    file.mimetype === "image/png"
+    file.mimetype === 'image/jpeg' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/png'
   ) {
     //pass a file
     callback(null, true);
@@ -41,13 +41,13 @@ const upload = multer({
   fileFilter: fileFilterDef,
 }); // we executer multer() thanks this variable | basically initialize and pass a configuration (specify a Information for Multer how he should try try to store incoming files)
 
-const Product = require("../models/product"); //Import Product Schema
+const Product = require('../models/product'); //Import Product Schema
 
 // below this method will be handle Incoming GET request | because this route will be handle with filter (/products)  in app.js we cannot add subsequent filter here again
-router.get("/", (req, res, next) => {
+router.get('/', (req, res, next) => {
   Product.find() /* we looking for documents with this schema */
     .select(
-      "name price _id productImage"
+      'name price _id productImage'
     ) /* we chose which fields we would like to select */
     .exec() /*  exec() function returns a promise, that you can use it with then() */
     .then((docs) => {
@@ -62,8 +62,8 @@ router.get("/", (req, res, next) => {
             productImage: doc.productImage,
             request: {
               // we return additional metadata in object to each element of document
-              type: "GET",
-              url: "http://localhost:5000/products/" + doc._id,
+              type: 'GET',
+              url: 'http://localhost:5000/products/' + doc._id,
             },
           };
         }), // when we set 'select()' above we return list with all documents with those properties
@@ -94,10 +94,10 @@ router.get("/", (req, res, next) => {
  *  - upload.single will parse form Data (because we add file) and extract file for each request so we need to use auth function after this method after parsing because it was not populated before | but when we set 'token' to the Header then we can first authorize this request before 'parsing' then our method do not save our image which 'upload.single' method will do on each request
  */
 router.post(
-  "/",
+  '/',
   checkAuth /*this is function which checks when we logged in and have a token and we pass it into this request then wee can do this authorization properly */,
   upload.single(
-    "productImage"
+    'productImage'
   ) /* try to parse only one file with Multer with specified name */,
   (req, res, next) => {
     console.log(req.file);
@@ -113,7 +113,7 @@ router.post(
         console.log(result); // print result on browser console
         //below to prove that data was saved correctly we send response
         res.status(201).json({
-          message: "Created product successfully",
+          message: 'Created product successfully',
           createdProduct: {
             // we set here what we would like to send in response inside this object when we create/save a product
             name: result.name,
@@ -121,8 +121,8 @@ router.post(
             _id: result._id,
             request: {
               // we return additional metadata in object to each element of document
-              type: "GET",
-              url: "http://localhost:5000/products/" + result._id,
+              type: 'GET',
+              url: 'http://localhost:5000/products/' + result._id,
             },
           },
         }); //response JSON
@@ -144,32 +144,32 @@ router.post(
 );
 
 // below this method will be handle Incoming GET request with Params | :productId
-router.get("/:productId", (req, res, next) => {
+router.get('/:productId', (req, res, next) => {
   const id = req.params.productId; // extract Id from params of request and pass it to variable
   Product.findById(
     id
   ) /*  this is MongoDB/Mongoose method to find a a Document */
     .select(
-      "name price _id productImage"
+      'name price _id productImage'
     ) /*  set Data which we would like to take from singular document */
     .exec() /*  exec() function returns a promise, that you can use it with then() */
     .then((doc) => {
       //The then() method in JavaScript has been defined in the Promise API and is used to deal with asynchronous tasks such as an API call.
-      console.log("From MongoDB database: ", doc);
+      console.log('From MongoDB database: ', doc);
       if (doc) {
         res.status(200).json({
           product: doc,
           request: {
             //attach additional data inside this object into this request
-            type: "GET",
-            description: "Get all products URL",
-            url: "http://localhost:5000/products/",
+            type: 'GET',
+            description: 'Get all products URL',
+            url: 'http://localhost:5000/products/',
           },
         }); // we need to type response here because we 'then()' take  'callback' functions and returns as a 'promise'
       } else {
         res
           .status(404)
-          .json({ message: "No valid entry found for provided ID" });
+          .json({ message: 'No valid entry found for provided ID' });
         // above if ID has an proper form but document will be not found then our Response would be return 'null' but instead we want to send 'message' above.
       }
     })
@@ -181,7 +181,7 @@ router.get("/:productId", (req, res, next) => {
 
 // below this method will be handle Incoming PATCH request with Params |
 router.patch(
-  "/:productId",
+  '/:productId',
   checkAuth /*this is function which checks when when we logged in and have a token and we pass it into this request then wee can do this authorization properly */,
   (req, res, next) => {
     const id = req.params.productId; // extract Id from params of request and pass it to variable
@@ -196,11 +196,11 @@ router.patch(
       .then((result) => {
         // if is Ok then send a Response with Results
         res.status(200).json({
-          message: "Product updated",
+          message: 'Product updated',
           request: {
             //attach additional data inside this object into this request
-            type: "GET",
-            url: "http://localhost:5000/products/" + id,
+            type: 'GET',
+            url: 'http://localhost:5000/products/' + id,
           },
         });
       })
@@ -216,7 +216,7 @@ router.patch(
 
 // below this method will be handle Incoming DELETE request with Params |
 router.delete(
-  "/:productId",
+  '/:productId',
   checkAuth /*this is function which checks when we logged in and have a token and we pass it into this request then wee can do this authorization properly */,
   (req, res, next) => {
     const id = req.params.productId; // extract Id from params of request and pass it to variable
@@ -231,13 +231,13 @@ router.delete(
         console.log(result);
         // below if remove will be done correctly we sen a response
         res.status(200).json({
-          message: "Product has been deleted",
+          message: 'Product has been deleted',
           request: {
             //attach additional data inside this object into this request
-            type: "POST",
-            description: "If you would like to add new Product",
-            url: "http://localhost:5000/products/",
-            body: { name: "String", price: "Number" },
+            type: 'POST',
+            description: 'If you would like to add new Product',
+            url: 'http://localhost:5000/products/',
+            body: { name: 'String', price: 'Number' },
           },
         });
       })

@@ -1,23 +1,13 @@
-/*eslint-env es6*/
-const { json } = require('body-parser');
-const express = require('express'); //To include the express module and help manage server and routes.
-const router = express.Router(); //Routing refers to how an application’s endpoints (URIs) respond to client requests
 const mongoose = require('mongoose'); // Import Mongoose to create object_ID in new orders
-const checkAuth = require('../middleware/check-auth'); // import middleware function to authenticate some actions in requests
 
 const Order = require('../models/order'); // import Order Schema defined with mongooseSchema
 const Product = require('../models/product'); // import Product schema to use it and make sure that product exists in your Order
 
-/** NOTES
- *  - we use "checkAuth" function to authorize this request if someone is logIn an want to Post
- *   some Orders
- */
 
-//handle incoming GET requests to /orders
-router.get(
-  '/',
-  checkAuth, /* <- this is function which checks when we logged in and have a token and we pass it into this request then wee can do this authorization properly */
-  (req, res, next) => {
+//Below we Export Expressions with arrow function to handle all "Orders" "Requests" in "Routes"
+
+
+exports.orders_get_all = (req, res, next) => {
     Order.find() /* return all documents with 'Order' schema */
       .select(
         'product quantity _id'
@@ -52,14 +42,9 @@ router.get(
           error: err,
         });
       }); /* If  some Errors */
-  }
-);
+  };
 
-//handle incoming POST requests to /orders and create new document with relation
-router.post(
-  '/',
-  checkAuth /*this is function which checks when we logged in and have a token and we pass it into this request then wee can do this authorization properly */,
-  (req, res, next) => {
+  exports.orders_create_order = (req, res, next) => {
     Product.findById(
       req.body.productId
     ) /* First we looking for product if Exists thanks Mongoose Schema in /models */
@@ -109,14 +94,9 @@ router.post(
           error: err,
         }); // if we send this response then we get out from this method immediately
       });
-  }
-);
+  };
 
-//handle incoming GET requests to /orders with parameter ":orderId"
-router.get(
-  '/:orderId',
-  checkAuth /*this is function which checks when we logged in and have a token and we pass it into this request then wee can do this authorization properly */,
-  (req, res, next) => {
+  exports.orders_get_order = (req, res, next) => {
     Order.findById(
       req.params.orderId
     ) /* seeking order thanks created Mongoose Schema in /models */
@@ -148,14 +128,9 @@ router.get(
           error: err,
         });
       });
-  }
-);
+  };
 
-//handle incoming DELETE requests to /orders to remove one document with parameter ":orderId"
-router.delete(
-  '/:orderId',
-  checkAuth /*this is function which checks when we logged in and have a token and we pass it into this request then wee can do this authorization properly */,
-  (req, res, next) => {
+  exports.order_delete_order = (req, res, next) => {
     const id = req.params.orderId; // extract Id from params of request and pass it to variable
     Order.deleteOne({ _id: id })
       .exec() /* turn into a real Promise */
@@ -181,7 +156,4 @@ router.delete(
           error: err,
         });
       });
-  }
-);
-
-module.exports = router;
+  };
